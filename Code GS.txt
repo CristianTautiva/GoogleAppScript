@@ -1,0 +1,89 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  //Puede usar DocumentApp, SpreadsheetApp o FormApp.
+  var topMenu = ui.createMenu('GAS Test Menu');
+  topMenu.addItem('Enviar email con Notas (all in the Spreadsheet)', 'myFunction');
+  topMenu.addItem('Enviar pdf con notas (all in the Spreadsheet)', 'enviarPDF');
+  topMenu.addItem('Crear pdf (Current user)', 'crearPDF');
+
+  topMenu.addToUi();
+}
+
+function myFunction() {
+  
+  var sp = SpreadsheetApp.getActive();
+  var sheet = sp.getSheetByName('sp1');
+  var data = sheet.getDataRange().getValues();
+  for(var i=1; i<= sheet.getLastRow()-1; i++){
+   var row = data[i];
+   // Logger.log(row);
+    MailApp.sendEmail(
+    {
+      to:row[5],
+      subject:'Google App Script',
+      body: ('Buenas tardes  '+row[2]+' '+row[3]+' Código: '+row[1]+'\n'+
+             'su nota para el curso es: '+row[4]+'\n'+
+             'see u later ;)')
+    }
+  )
+  }
+}
+
+function fu2(){
+ 
+  var sp = SpreadsheetApp.getActive();
+  var sheet = sp.getSheetByName('sp1');
+  var data = sheet.getDataRange().getValues();
+  var id = '1LC1NXzvAtoMZ2bQdqxxwStmdIAehEMh0MfXVqliB5H8';
+  var doc = DocumentApp.openById(id);
+  //doc.getBody().clear();
+  doc.getBody().appendParagraph('Notas Cloud Computing');
+  doc.getBody().appendHorizontalRule();
+  
+  for(var i=1; i<= sheet.getLastRow()-1; i++){
+    var row = data[i];
+    var datos = 'Nombre: '+row[2]+' Apellido: '+ row[3]+ ' Nota:'+row[4]+' Correo:'+row[5];
+    doc.getBody().appendListItem(datos);
+     //doc.getBody().appendListItem(row[3]);
+    
+  }
+
+}
+
+function crearPDF(){
+  
+  fu2();
+  
+  const Id = '1QNOa5Q4YOrKkRYRNfItEKptJ09AKB3Sj53O8iCjOX-w';
+  const carpetaId = '1XvKB-r35uCXV1X4eWryu8ajq5UrKZD_-';
+  
+  var doc = DriveApp.getFileById(Id);
+  var carpeta = DriveApp.getFolderById(carpetaId);
+  
+  const docP = doc.makeCopy(carpeta);
+  //var PDF = DocumentApp.openById(doc.getId());
+  
+  const pdf = docP.getAs(MimeType.PDF);
+  
+  carpeta.createFile(pdf).setName('1151007A-Cristian Tautiva 1151565');
+
+}
+
+function enviarPDF(){
+  
+  var doc = SpreadsheetApp.getActive();
+  var fileDoc = DriveApp.getFileById(doc.getId());
+  var pdfDoc = DriveApp.createFile(fileDoc.getAs('application/pdf'));
+  pdfDoc.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.VIEW);
+  var sp = SpreadsheetApp.getActive();
+  var sheet = sp.getSheetByName('sp1');
+  var data = sheet.getDataRange().getValues();
+  for(var i=1; i<= sheet.getLastRow()-1; i++){
+   var row = data[i];
+  
+    GmailApp.sendEmail(row[5], 'PDF with Notes Cloud Computing', 'URL PDF: ' + pdfDoc.getUrl());
+    
+  }
+
+}
+
